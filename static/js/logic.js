@@ -1,127 +1,156 @@
-// This is the GEOJSON we will be querying.
-// var query_URL_4_5 = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_week.geojson";
+// URLs for earthquake GeoJSONs
+// depending on time period
+const earthquakes_past_30_days = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_month.geojson";
+const earthquakes_past_7_days = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson";
+const earthquakes_past_day = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson";
+const earthquakes_past_hour = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_hour.geojson";
 
-// var query_URL_2_5 = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_week.geojson"
-
-// var query_URL_1_0 = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/1.0_week.geojson"
-
-const query_URL_past_hour = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_hour.geojson";
-const query_URL_past_day = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson";
-const query_URL_past_7_days = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson";
-const query_URL_past_30_days = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_month.geojson";
-
-// We perform a GET request to the GEOJSON;
-// once we get a response, we send the data.features object to the create_features function.
-d3.json(query_URL_past_7_days, function(data) {
+d3.json(earthquakes_past_7_days, function(data) {
+    // When we get a response,
+    // send the data.features object to the create_features function
     create_features(data.features);
 
-})
+});
+
+
 
 function create_features(earthquake_data) {
-    // This function will run once for every feature in the features array.
-    // Each "feature" will be given a popup which describes the location and time of the earthquake.
+    // Define a function to run once for each feature in the array
+    // Give each feature a popup describing the location, and magnitude of the earthquake
     function onEachFeature(feature, layer) {
-        layer.bindPopup("<h3>" + feature.properties.place + "</h3>" +
-        "<p><strong>Magnitude: </strong>" + feature.properties.mag + "</p>" +
-        "</h3><hr><p>" + new Date(feature.properties.time) + "</p>");
+        layer.bindPopup(`<h3>Location: ${feature.properties.place}</h3><hr><p>Magnitude: ${feature.properties.mag}</p>`);
     }
 
-    // This creates a GEOJSON layer containing the features array on the earthquake_data object.
-    // We will run the onEachFeature function once for every item in the array.
+    // Define a function to apply a color to each marker
+    // Depending on the magnitude of the earthquake
+    function makeColor(mag) {
+        switch(true) {
+            case mag > 5:
+              return "#f06b6b";
+            case mag > 4:
+              return "#f0a76b";
+            case mag > 3:
+              return "#f3ba4d";
+            case mag > 2:
+              return "#f3db4d";
+            case mag > 1:
+              return "#e1f34d";
+            default:
+              return "#b7f34d";
+        }
+    }
+
+    // Create a GeoJSON layer containing the features array on the earthquake_data object
+    // Run the onEachFeature function once for each element in the array
     var earthquakes = L.geoJSON(earthquake_data, {
-        onEachFeature: onEachFeature
+        pointToLayer: function (feature, latlng) {
+            return L.circleMarker(latlng);
+        },
+        onEachFeature: onEachFeature,
+        style: function(feature) {
+          return {
+              "weight": 1,
+              "opacity": 0.9,
+              "fillOpacity": 1,
+              "color": "#3F3F3F",
+              "fillColor": makeColor(feature.properties.mag),
+              "stroke": true,
+              "radius": feature.properties.mag > 0 ? feature.properties.mag * 4 : 0.4
+          }
+        }
     });
 
+    // Send our earthquakes layer to the create_map function
     create_map(earthquakes);
 }
 
 function create_map(earthquakes) {
-
-  var street_map = L.tileLayer("https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}", {
-      attribution:  "Map data &copy; <a href=\"https://www.openstreetmap.org/\">OpenStreetMap</a> contributors, <a href=\"https://creativecommons.org/licenses/by-sa/2.0/\">CC-BY-SA</a>, Imagery © <a href=\"https://www.mapbox.com/\">Mapbox</a>",
-      maxZoom: 18,
-      id: "mapbox.streets",
-      accessToken: API_KEY
+  // Define streetmap, satellite , darkmap, and lightmap layers
+  var streetmap = L.tileLayer("https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}", {
+    attribution: "Map data &copy; <a href=\"https://www.openstreetmap.org/\">OpenStreetMap</a> contributors, <a href=\"https://creativecommons.org/licenses/by-sa/2.0/\">CC-BY-SA</a>, Imagery © <a href=\"https://www.mapbox.com/\">Mapbox</a>",
+    maxZoom: 18,
+    id: "mapbox.streets",
+    accessToken: API_KEY
   });
 
-  var satellite_map = L.tileLayer("https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}", {
-    attribution:  "Map data &copy; <a href=\"https://www.openstreetmap.org/\">OpenStreetMap</a> contributors, <a href=\"https://creativecommons.org/licenses/by-sa/2.0/\">CC-BY-SA</a>, Imagery © <a href=\"https://www.mapbox.com/\">Mapbox</a>",
+  var satellitemap =  L.tileLayer("https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}", {
+    attribution: "Map data &copy; <a href=\"https://www.openstreetmap.org/\">OpenStreetMap</a> contributors, <a href=\"https://creativecommons.org/licenses/by-sa/2.0/\">CC-BY-SA</a>, Imagery © <a href=\"https://www.mapbox.com/\">Mapbox</a>",
     maxZoom: 18,
     id: "mapbox.streets-satellite",
     accessToken: API_KEY
-});
+    });
 
-  var dark_map = L.tileLayer("https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}", { 
+  var darkmap = L.tileLayer("https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}", {
       attribution: "Map data &copy; <a href=\"https://www.openstreetmap.org/\">OpenStreetMap</a> contributors, <a href=\"https://creativecommons.org/licenses/by-sa/2.0/\">CC-BY-SA</a>, Imagery © <a href=\"https://www.mapbox.com/\">Mapbox</a>",
       maxZoom: 18,
       id: "mapbox.dark",
       accessToken: API_KEY
+    });
+
+  var lightmap = L.tileLayer("https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}", {
+    attribution: "Map data &copy; <a href=\"https://www.openstreetmap.org/\">OpenStreetMap</a> contributors, <a href=\"https://creativecommons.org/licenses/by-sa/2.0/\">CC-BY-SA</a>, Imagery © <a href=\"https://www.mapbox.com/\">Mapbox</a>",
+    maxZoom: 18,
+    id: "mapbox.light",
+    accessToken: API_KEY
   });
-  
-//   Here we define a base_maps object to hold our base layers.
-  var base_maps = {
-      "Street Map": street_map,
-      "Satellite Map": satellite_map,
-      "Dark Map": dark_map
+
+  // Define a baseMaps object to hold our base layers
+  var baseMaps = {
+      "Street Map": streetmap,
+      "Satellite Map": satellitemap,
+      "Dark Map": darkmap,
+      "Light Map": lightmap,
   };
-  
-  // This creates an overlay object to hold our overlay layer.
-  var overlay_maps = {
+
+  // Create overlay object to hold our overlay layer
+  var overlayMaps = {
       Earthquakes: earthquakes
   };
 
-  var the_map = L.map("map", {
-      center: [46.20491, 19.54740],
-      zoom: 3,
-      layers: [street_map, earthquakes]
+  // Create our map, giving it the streetmap and earthquake layers to display on load
+  var my_map = L.map("map", {
+      center: [ 37.09, -95.71],
+      zoom: 5,
+      layers: [streetmap, earthquakes]
   });
 
-    // var the_map = L.map("map", {
-    //     center: [46.20491, 19.54740],
-    //     zoom: 3,
-    //     layers: [
-    //         layers.M1,
-    //         layers.M2,
-    //         layers.M3,
-    //         layers.M4,
-    //         layers.M5_PLUS
-    //     ]
-    // });
-
-  L.control.layers(base_maps, overlay_maps, {
+  // Create a layer control
+  // Pass in our baseMaps and overlayMaps
+  // Add the layer control to the map
+  L.control.layers(baseMaps, overlayMaps, {
       collapsed: true
-  }).addTo(the_map);
+  }).addTo(my_map);
+
+  // Create the legend
+  var legend = L.control({ position: "bottomright"});
+  legend.onAdd = function() {
+    var div = L.DomUtil.create("div", "info legend");
+    var limits = [0, 1, 2, 3, 4, 5]
+    var colors = ["#b7f34d",
+                  "#e1f34d",
+                  "#f3db4d",
+                  "#f3ba4d",
+                  "#f0a76b",
+                  "#f06b6b"]
+    var labels = [];
+
+    // Addd legend title
+    var legend_info = "<h3>Magnitude</h3>";
+    div.innerHTML = legend_info;
+
+    limits.forEach(function(limit, index) {
+      labels.push("<li style= \"background-color:  " + colors[index] + "\"></li>");
+    });
+
+    for (var i = 0; i < limits.length; i++) {
+      i > 4 ? div.innerHTML += "<ul> " + limits[i] + " +" + "\t" + labels[i] + "</ul>" :
+      div.innerHTML += "<ul>" + limits[i] + "-" + limits[i+1] + "\t" + labels[i] + "</ul>";
+    }
+
+    return div;
+  };
+
+  // Add the legend to the map
+  legend.addTo(my_map);
+
 }
-
-
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-// This section adds the more advanced features.
-// I might write a more specific comment later.
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// var layers = {
-//     M1: new L.LayerGroup(),
-//     M2: new L.LayerGroup(),
-//     M3: new L.LayerGroup(),
-//     M4: new L.LayerGroup(),
-//     M5_PLUS: new L.LayerGroup()
-// };
-
-// // var the_map = L.map("map", {
-// //     center: [46.20491, 19.54740],
-// //     zoom: 3,
-// //     layers: [
-// //         layers.M1,
-// //         layers.M2,
-// //         layers.M3,
-// //         layers.M4,
-// //         layers.M5_PLUS
-// //     ]
-// // });
-
-// // L.control.layers(null, overlays).addTo(map);
-
-// var info = L.control({
-//     position: "bottomright"
-// });

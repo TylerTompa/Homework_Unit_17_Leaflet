@@ -1,6 +1,5 @@
 const queryUrl = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson";
 
-
 d3.json(queryUrl, function(data) {
   // Once we get a response, send the data.features object to the createFeatures function
   createFeatures(data.features);
@@ -31,13 +30,6 @@ function createFeatures(earthquakeData) {
         return "#f06b6b";
     }
   }
-
-
-
-
-
-  
-
 
   // Create a GeoJSON layer containing the features array on the earthquakeData object
   // Run the onEachFeature function once for each piece of data in the array
