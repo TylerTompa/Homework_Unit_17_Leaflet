@@ -16,12 +16,58 @@ function create_features(earthquake_data) {
     // Define a function to run once for each feature in the array
     // Give each feature a popup describing the location, and magnitude of the earthquake
     function onEachFeature(feature, layer) {
-        layer.bindPopup(`<h3>Location: ${feature.properties.place}</h3><hr><p>Magnitude: ${feature.properties.mag}</p>`);
+      // First we get the define a the variable earthquake_day_of_week
+      // Then see use a switch-case statement to check the numbered day of the earthquake
+      // and defined it the day of the week in words as appropriate
+      // that is, 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+      var earthquake_day_of_week;
+      switch (new Date(feature.properties.time).getDay()) {
+        case 0:
+          earthquake_day_of_week = "Sunday";
+          break;
+        case 1:
+          earthquake_day_of_week = "Monday";
+          break;
+        case 2:
+          earthquake_day_of_week = "Tuesday";
+          break;
+        case 3:
+          earthquake_day_of_week = "Wednesday";
+          break;
+        case 4:
+          earthquake_day_of_week = "Thursday";
+          break;
+        case 5:
+          earthquake_day_of_week = "Friday";
+          break;
+        default:
+          earthquake_day_of_week = "Saturday";
+          break;
+      }
+      
+      // Next we define the earthquake_date variable to gold the date of the earthquake
+      var earthquake_date = new Date(feature.properties.time).toLocaleDateString();
+
+      // Then we define earthquake_time_hours to hold the hour of the time the earthquake happened
+      // If the hour is less than 0, we concatenate a 0 before it for a more natural-looking time
+      // That is, for example: 06:30 lookds better than 6:30
+      var earthquake_time_hours = new Date(feature.properties.time).getHours() < 10 ?
+      "0" + new Date(feature.properties.time).getHours() : new Date(feature.properties.time).getHours();
+
+      // After that we define earthquake_time_hours to hold the minuts of the time the earthquake happened
+      // If the minute is less than 0, we concatenate a 0 before it for a more natural-looking time
+      // That is, for example: 06:05 lookds better than 06:5
+      var earthquake_time_minutes = new Date(feature.properties.time).getMinutes() < 10 ?
+      "0" + new Date(feature.properties.time).getMinutes() : new Date(feature.properties.time).getMinutes();
+      
+      // Finally we concatenate the earthquake_time_hours variable with the earthquake_time_minutes for a full nicely-formatted time.
+      var earthquake_time = earthquake_time_hours + ":" + earthquake_time_minutes
+        layer.bindPopup(`<h3>Location: ${feature.properties.place}</h3><hr><p>Date: ${earthquake_day_of_week}, ${earthquake_date}</p><p>Time: ${earthquake_time}</p><p>Magnitude: ${feature.properties.mag}</p>`);
     }
 
     // Define a function to apply a color to each marker
     // Depending on the magnitude of the earthquake
-    function makeColor(mag) {
+    function make_color(mag) {
         switch(true) {
             case mag > 5:
               return "#f06b6b";
@@ -41,8 +87,8 @@ function create_features(earthquake_data) {
     // Create a GeoJSON layer containing the features array on the earthquake_data object
     // Run the onEachFeature function once for each element in the array
     var earthquakes = L.geoJSON(earthquake_data, {
-        pointToLayer: function (feature, latlng) {
-            return L.circleMarker(latlng);
+        pointToLayer: function (feature, latitude_longitude) {
+            return L.circleMarker(latitude_longitude);
         },
         onEachFeature: onEachFeature,
         style: function(feature) {
@@ -51,7 +97,7 @@ function create_features(earthquake_data) {
               "opacity": 0.9,
               "fillOpacity": 1,
               "color": "#3F3F3F",
-              "fillColor": makeColor(feature.properties.mag),
+              "fillColor": make_color(feature.properties.mag),
               "stroke": true,
               "radius": feature.properties.mag > 0 ? feature.properties.mag * 4 : 0.4
           }
@@ -64,28 +110,28 @@ function create_features(earthquake_data) {
 
 function create_map(earthquakes) {
   // Define streetmap, satellite , darkmap, and lightmap layers
-  var streetmap = L.tileLayer("https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}", {
+  var street_map = L.tileLayer("https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}", {
     attribution: "Map data &copy; <a href=\"https://www.openstreetmap.org/\">OpenStreetMap</a> contributors, <a href=\"https://creativecommons.org/licenses/by-sa/2.0/\">CC-BY-SA</a>, Imagery © <a href=\"https://www.mapbox.com/\">Mapbox</a>",
     maxZoom: 18,
     id: "mapbox.streets",
     accessToken: API_KEY
   });
 
-  var satellitemap =  L.tileLayer("https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}", {
+  var satellite_map =  L.tileLayer("https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}", {
     attribution: "Map data &copy; <a href=\"https://www.openstreetmap.org/\">OpenStreetMap</a> contributors, <a href=\"https://creativecommons.org/licenses/by-sa/2.0/\">CC-BY-SA</a>, Imagery © <a href=\"https://www.mapbox.com/\">Mapbox</a>",
     maxZoom: 18,
     id: "mapbox.streets-satellite",
     accessToken: API_KEY
     });
 
-  var darkmap = L.tileLayer("https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}", {
+  var dark_map = L.tileLayer("https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}", {
       attribution: "Map data &copy; <a href=\"https://www.openstreetmap.org/\">OpenStreetMap</a> contributors, <a href=\"https://creativecommons.org/licenses/by-sa/2.0/\">CC-BY-SA</a>, Imagery © <a href=\"https://www.mapbox.com/\">Mapbox</a>",
       maxZoom: 18,
       id: "mapbox.dark",
       accessToken: API_KEY
     });
 
-  var lightmap = L.tileLayer("https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}", {
+  var light_map = L.tileLayer("https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}", {
     attribution: "Map data &copy; <a href=\"https://www.openstreetmap.org/\">OpenStreetMap</a> contributors, <a href=\"https://creativecommons.org/licenses/by-sa/2.0/\">CC-BY-SA</a>, Imagery © <a href=\"https://www.mapbox.com/\">Mapbox</a>",
     maxZoom: 18,
     id: "mapbox.light",
@@ -93,29 +139,32 @@ function create_map(earthquakes) {
   });
 
   // Define a baseMaps object to hold our base layers
-  var baseMaps = {
-      "Street Map": streetmap,
-      "Satellite Map": satellitemap,
-      "Dark Map": darkmap,
-      "Light Map": lightmap,
+  var base_maps = {
+      "Street Map": street_map,
+      "Satellite Map": satellite_map,
+      "Dark Map": dark_map,
+      "Light Map": light_map,
   };
 
-  // Create overlay object to hold our overlay layer
-  var overlayMaps = {
-      Earthquakes: earthquakes
+  // // Create overlay object to hold our overlay layer
+  var overlay_maps = {
+      // "Past Hour": earthquakes,
+      // "Past 24 Hours": earthquakes,
+      "Earthquakes": earthquakes
+      // "Past 30 Days": earthquakes,
   };
 
   // Create our map, giving it the streetmap and earthquake layers to display on load
   var my_map = L.map("map", {
       center: [ 37.09, -95.71],
       zoom: 5,
-      layers: [streetmap, earthquakes]
+      layers: [street_map, earthquakes]
   });
 
   // Create a layer control
   // Pass in our baseMaps and overlayMaps
   // Add the layer control to the map
-  L.control.layers(baseMaps, overlayMaps, {
+  L.control.layers(base_maps, overlay_maps, {
       collapsed: true
   }).addTo(my_map);
 
