@@ -12,8 +12,6 @@ d3.json(earthquakes_past_7_days, function(data) {
 
 });
 
-
-
 function create_features(earthquake_data) {
     // Define a function to run once for each feature in the array
     // Give each feature a popup describing the location, and magnitude of the earthquake
@@ -139,11 +137,11 @@ function create_map(earthquakes) {
     div.innerHTML = legend_info;
 
     limits.forEach(function(limit, index) {
-      labels.push("<li style= \"background-color:  " + colors[index] + "\"></li>");
+      labels.push("<li style= 'background-color:  " + colors[index] + "' ></li>");
     });
 
     for (var i = 0; i < limits.length; i++) {
-      i > 4 ? div.innerHTML += "<ul> " + limits[i] + " +" + "\t" + labels[i] + "</ul>" :
+      i > 4 ? div.innerHTML += "<ul> " + limits[i] + "+&nbsp;" + "\t" + labels[i] + "</ul>" :
       div.innerHTML += "<ul>" + limits[i] + "-" + limits[i+1] + "\t" + labels[i] + "</ul>";
     }
 
